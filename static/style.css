@@ -1,0 +1,166 @@
+body {
+    background: #000;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', monospace
+}
+.menu {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 70vw;
+    height: 15%;
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+    transform: translateX(-50%);
+    color: #fff;
+}
+.menu div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+#p span {
+    color: #f00;
+    opacity: 52%;
+}
+.grid {
+    position: absolute;
+    left: 50%;
+    top: 15%;
+    transform: translate(-50%);
+    display: grid;
+    width: 95%;
+    height: 85%;
+    grid-template-columns: 25% 22.5% auto;
+    column-gap: 2.5%;
+}
+.grid2 {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: grid;
+    width: 95%;
+    height: 95%;
+    grid-template-columns: 20% 40% auto;
+    column-gap: 5%;
+}
+.grid > div {
+    height: 80vh;
+}
+.grid2 > div {
+    border-right: 1px solid #D9D9D9;
+    padding-right: 10%;
+}
+.grid2 > div:last-child {
+    border-right: none;
+}
+.gridp1 {
+    display: grid;
+    grid-template-rows: 20% 20% 22.5% 22.5% 15%;
+}
+.grids1 {
+    display: grid;
+    grid-template-rows: 20% 20% 22.5% auto;
+}
+.gridp2 {
+    display: grid;
+    grid-template-rows: 17.5% 65% 17.5%;
+    border-right: 1px solid #d9d9d9;
+    padding-right: 20%;
+}
+.picgrid {
+    display: grid;
+    grid-template-columns: 65% 35%;
+    width: 100%;
+    height: 80vh;
+}
+.picrow {
+    display: grid;
+    grid-template-rows: 65% 35%;
+    height: 80vh;
+}
+[class^="gridp"] div {
+    border-bottom: 1px solid #D9D9D9;
+}
+[class^="gridp"] div:last-child {
+    border-bottom: none;
+}
+.grids1 div {
+    border-bottom: 1px solid #D9D9D9;
+}
+.grids1 div:last-child {
+    border-bottom: none;
+}
+.gridl1 {
+    display: grid;
+    grid-template-rows: 17.5% 25% auto;
+}
+.gridl2 {
+    display: grid;
+    grid-template-rows: 45% 20% 35%;
+}
+[class^="gridl"] > div, [class^="gridp"] > div, .grids1 > div {
+    border-bottom: 1px solid #d9d9d9;
+    position: relative;
+}
+[class^="gridl"] div > *,[class^="gridp"] div > *, .grids1 div > * {
+    color:#fff;margin:0;position:absolute;left:50%;top:50%;transform:translate(-50%, -50%)
+}
+[class^="gridl"] div:last-child,  [class^="gridp"] > div:last-child, .grids1 > div:last-child{
+    border-bottom: none;
+}
+.portgrid {
+    display: grid;
+    grid-template-columns: 33% 33% 33%;
+    column-gap: 0.5%;
+    width: 100%;
+    height: 90%;
+    padding-left: 15%;
+    padding-top:5%;
+}
+a {
+    color: #fff;
+    outline:none;
+    text-decoration:none;
+}
+.portrow {
+    display: grid;
+    grid-template-rows: 33% 33% 33%;
+    row-gap: 0.5%;
+}
+.picrow img {
+    width: 100%;
+    height: 100%;
+}
+.skillgrid {
+    display: grid;
+    grid-template-columns: 30% 30% 30%;
+    column-gap: 5%;
+}
+.skillrow {
+    display: grid;
+    grid-template-rows: 40% 40%;
+    row-gap: 10%;
+}
+.skillrow img {
+    width: 100%;
+    height: 100%;
+}
+.surv {
+    display: grid;
+    grid-template-rows: 50% 50%;
+    transform: translate(-15%, 7.5%)
+}
+.surv img {
+    width: 100%;
+}
+.surv div {
+    display: flex;
+    flex-direction: column;
+    justify-content:center;
+    align-items: center;
+    padding: 5%;
+
+}

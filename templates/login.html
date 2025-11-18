@@ -1,0 +1,157 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LOGIN</title>
+        <link rel="stylesheet" href="../static/style.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+
+        <style>
+            #uname, #psw {
+                font-family:'JetBrains Mono', monospace;
+                color: #000;
+                font-weight: 800;
+                text-shadow: #fff 0 0 5px;
+            }
+            body {
+    background: #000;
+}
+.img-section {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 60vw;
+}
+.img-section .tyler {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    height: 70%;
+}
+.line {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100vh;
+
+}
+.right-section {
+    position: absolute;
+    right: 0;
+    width: 40vw;
+    height: 100vh;
+
+}
+.login-container, .flicker1 {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 10vh;
+}
+.flicker1 {
+    top: 11.25vh;
+}
+#login {
+    height: 12vh;
+}
+.flicker1 img {
+    height: 9.75vh;
+}
+#uname, #psw {
+    position: absolute;left:50%;
+    bottom:0;
+    transform: translate(-50%);
+    background: none;
+    border: none;
+    outline: none;
+    height: 70%;
+    width: 100%;
+    border-radius: 20px;
+    padding-left: 2vw;
+}
+input {
+    border: none;
+    outline: none;
+    background: none;
+}
+input:focus {
+    outline: none;
+    border: none;
+}
+.uname-container {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    top: 35vh;
+
+}
+.psw-container {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 50vh;
+}
+#username {
+    height: 10vh;
+}
+#password {
+    height: 10vh;
+}
+.submit-container {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    top: 70vh;
+}
+#submit {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    border-radius: 20px;
+}
+#submitb {
+    height: 12.5vh;
+}
+.group {
+    position: absolute;
+    left:0;
+    top:50%;
+    transform: translateY(-50%);
+    width: 100vw;
+    height: 100vh;
+    /* z-index:-1; */
+    pointer-events:none;
+}
+        </style>
+    </head>
+    <body style="overflow:hidden">
+        <div class="img-section">
+            <img src="../static/imgs/tyler.png" alt="" class="tyler">
+        </div>
+        <form class="right-section" method="POST">
+            <div class="login-container">
+                <img src="../static/imgs/login.svg" alt="" id="login">
+            </div>
+            <div class="uname-container">
+                <img src="../static/imgs/username.svg" alt="" id="username">
+                <input type="text" name="uname" id="uname" required>
+            </div>
+            <div class="psw-container">
+                <img src="../static/imgs/password.svg" alt="" id="password">
+                <input type="text" name="psw" id="psw" required>
+            </div>
+            <div class="submit-container">
+                <img src="../static/imgs/submit.svg" alt="" id="submitb">
+                <input type="submit" name="submit" id="submit" value="">
+            </div>
+        </form>
+        <img src="../static/imgs/group.svg" alt="" class = "group">
+    </body>
+    </html>
