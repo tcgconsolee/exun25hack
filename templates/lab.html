@@ -6,15 +6,88 @@
     <title>Document</title>
     <link rel="stylesheet" href="../static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+    <style>
+        .cyber-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #0a0a0a;
+            position: relative !important;
+            left: 0 !important;
+            top: 0 !important;
+            transform: none !important;
+        }
+
+        .cyber-canvas {
+            width: 100%;
+            display: block;
+        }
+
+        #waveform {
+            height: 35%;
+            flex-shrink: 0;
+        }
+
+        #networkGraph {
+            height: 40%;
+            flex-shrink: 0;
+        }
+
+        .terminal {
+            flex: 1;
+            background: rgba(20, 20, 20, 0.9);
+            border-top: 1px solid #ff0040;
+            padding: 10px;
+            font-size: 11px;
+            line-height: 1.4;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        .log-line {
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+            color: #00ff00;
+        }
+
+        .log-line.warning {
+            color: #ffaa00;
+        }
+
+        .log-line.error {
+            color: #ff0040;
+        }
+
+        .log-line.info {
+            color: #00aaff;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .breach {
+            color: #ff0040;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ff0040;
+        }
+
+        .highlight {
+            color: #00ffff;
+        }
+    </style>
 </head>
 <body>
     <div class="grid2">
         <div class="gridl1">
             <div>
                 <img src="../static/imgs/timeb.svg" alt="" style="width:100%">
-                <p style="font-size:30px;">10:27:51</p>
+                <p id="live-time" style="font-size:30px;">10:27:51</p>
             </div>
             <div>
                 <p style="width:100%;color:#A0A0A0;line-height:150%;">
@@ -26,7 +99,12 @@
                 </p>
             </div>
             <div>
-                <img src="../static/imgs/xiomanyx.svg" alt="" style="height: 95%;margin-top:2.5%;">
+                <!-- Integrated cyber analysis here -->
+                <div class="cyber-container" style="position:relative;left:0;top:0;transform:none;">
+                    <canvas id="waveform" class="cyber-canvas"style="position:static;left:0;top:0;transform:none;"></canvas>
+                    <canvas id="networkGraph" class="cyber-canvas"style="position:static;left:0;top:0;transform:none;"></canvas>
+                    <div class="terminal" id="terminal"style="position:static;left:0;top:0;transform:none;"></div>
+                </div>
             </div>
         </div>
         <div></div>
@@ -48,5 +126,192 @@
             </div>
         </div>
     </div>
+    <script>
+    function updateClock() {
+        const now = new Date();
+        
+        let h = now.getHours().toString().padStart(2, "0");
+        let m = now.getMinutes().toString().padStart(2, "0");
+        let s = now.getSeconds().toString().padStart(2, "0");
+
+        document.getElementById("live-time").textContent = `${h}:${m}:${s}`;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Cyber Analysis Graphics
+    const waveCanvas = document.getElementById('waveform');
+    const waveCtx = waveCanvas.getContext('2d');
+    
+    const netCanvas = document.getElementById('networkGraph');
+    const netCtx = netCanvas.getContext('2d');
+
+    function resizeCanvases() {
+        const container = waveCanvas.parentElement;
+        const rect = container.getBoundingClientRect();
+        
+        if (rect.width > 0 && rect.height > 0) {
+            waveCanvas.width = rect.width;
+            waveCanvas.height = rect.height * 0.35;
+            
+            netCanvas.width = rect.width;
+            netCanvas.height = rect.height * 0.40;
+        }
+    }
+
+    // Delay initial resize to ensure container is rendered
+    setTimeout(resizeCanvases, 100);
+    window.addEventListener('resize', resizeCanvases);
+
+    // Waveform data
+    const bars = 30;
+    const barData = Array(bars).fill(0).map(() => Math.random());
+
+    function drawWaveform() {
+        waveCtx.fillStyle = '#0a0a0a';
+        waveCtx.fillRect(0, 0, waveCanvas.width, waveCanvas.height);
+
+        const barWidth = waveCanvas.width / bars;
+        const maxHeight = waveCanvas.height * 0.8;
+
+        for (let i = 0; i < bars; i++) {
+            barData[i] += (Math.random() - 0.5) * 0.15;
+            barData[i] = Math.max(0.1, Math.min(1, barData[i]));
+
+            const height = barData[i] * maxHeight;
+            const x = i * barWidth + barWidth * 0.5;
+            const y = waveCanvas.height / 2;
+
+            waveCtx.strokeStyle = '#222';
+            waveCtx.lineWidth = 1;
+            waveCtx.beginPath();
+            waveCtx.moveTo(x, 0);
+            waveCtx.lineTo(x, waveCanvas.height);
+            waveCtx.stroke();
+
+            const gradient = waveCtx.createLinearGradient(0, y - height/2, 0, y + height/2);
+            gradient.addColorStop(0, '#ff0040');
+            gradient.addColorStop(0.5, '#ff3366');
+            gradient.addColorStop(1, '#ff0040');
+
+            waveCtx.fillStyle = gradient;
+            waveCtx.shadowBlur = 10;
+            waveCtx.shadowColor = '#ff0040';
+            waveCtx.fillRect(x - 2, y - height/2, 4, height);
+            waveCtx.shadowBlur = 0;
+        }
+    }
+
+    // Network Graph
+    const nodes = [];
+    for (let i = 0; i < 6; i++) {
+        nodes.push({
+            x: Math.random() * 0.8 + 0.1,
+            y: Math.random() * 0.8 + 0.1,
+            vx: (Math.random() - 0.5) * 0.002,
+            vy: (Math.random() - 0.5) * 0.002
+        });
+    }
+
+    function drawNetworkGraph() {
+        netCtx.fillStyle = '#0a0a0a';
+        netCtx.fillRect(0, 0, netCanvas.width, netCanvas.height);
+
+        netCtx.strokeStyle = 'rgba(255, 0, 64, 0.3)';
+        netCtx.lineWidth = 1;
+
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                const x1 = nodes[i].x * netCanvas.width;
+                const y1 = nodes[i].y * netCanvas.height;
+                const x2 = nodes[j].x * netCanvas.width;
+                const y2 = nodes[j].y * netCanvas.height;
+                
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < 200 && Math.random() > 0.4) {
+                    netCtx.beginPath();
+                    netCtx.moveTo(x1, y1);
+                    netCtx.lineTo(x2, y2);
+                    netCtx.stroke();
+                }
+            }
+        }
+
+        nodes.forEach(node => {
+            node.x += node.vx;
+            node.y += node.vy;
+
+            if (node.x < 0.1 || node.x > 0.9) node.vx *= -1;
+            if (node.y < 0.1 || node.y > 0.9) node.vy *= -1;
+
+            const x = node.x * netCanvas.width;
+            const y = node.y * netCanvas.height;
+
+            netCtx.fillStyle = '#ff0040';
+            netCtx.shadowBlur = 8;
+            netCtx.shadowColor = '#ff0040';
+            netCtx.beginPath();
+            netCtx.arc(x, y, 3, 0, Math.PI * 2);
+            netCtx.fill();
+            netCtx.shadowBlur = 0;
+        });
+
+        netCtx.strokeStyle = '#ff0040';
+        netCtx.lineWidth = 2;
+        netCtx.beginPath();
+        netCtx.moveTo(0, netCanvas.height - 5);
+        netCtx.lineTo(netCanvas.width, netCanvas.height - 5);
+        netCtx.stroke();
+    }
+
+    // Terminal logs
+    const terminal = document.getElementById('terminal');
+    const logs = [
+        { text: '#code xiomanyc <span class="breach" style="position:static;left:0;top:0;transform:none">breached</span> opp', type: 'error' },
+        { text: '#nova hyper\'ed failed 67%-1', type: 'warning' },
+        { text: 'd3v51ans.<span class="highlight" style="position:static;left:0;top:0;transform:none">exe</span> 5.3% upload.tk', type: 'info' },
+        { text: 'aD#ro1que.par extracted', type: 'info' },
+        { text: 'Scanning network topology...', type: '' },
+        { text: 'Intrusion detected: 192.168.1.47', type: 'error' },
+        { text: 'Firewall breach attempt blocked', type: 'warning' },
+        { text: 'Port scan: 22, 80, 443, 8080', type: 'info' },
+        { text: 'SQL injection logged', type: 'warning' },
+        { text: 'Zero-day exploit identified', type: 'error' }
+    ];
+
+    let logIndex = 0;
+
+    function addLog() {
+        if (terminal.children.length > 2) {
+            terminal.removeChild(terminal.firstChild);
+        }
+
+        const log = logs[logIndex % logs.length];
+        const line = document.createElement('div');
+        line.style.position="static"
+        line.style.left=0;
+        line.style.top=0;
+        line.style.transform="none"
+        line.className = `log-line ${log.type}`;
+        line.innerHTML = `[${new Date().toLocaleTimeString()}] ${log.text}`;
+        terminal.appendChild(line);
+
+        logIndex++;
+    }
+
+    function animate() {
+        drawWaveform();
+        drawNetworkGraph();
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+    addLog();
+    setInterval(addLog, 2000);
+    </script>
 </body>
 </html>

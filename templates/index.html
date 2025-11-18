@@ -8,6 +8,40 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+<style>
+    .live-graph-container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+    .live-graph-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+    .graph-markers {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+    .marker {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border: 2px solid #ff0000;
+        border-radius: 50%;
+        background: rgba(255, 0, 0, 0.3);
+        animation: pulse 2s infinite;
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.5; }
+    }
+</style>
 </head>
 <body>
    <div class="menu">
@@ -20,7 +54,7 @@
         <div class="gridp1">
             <div>
                 <img src="../static/imgs/timeb.svg" alt="" style="height:80%;width: 100%;top:0;transform:translate(-50%, 0)">
-                <p style="font-size:40px;margin-top:-7.5px;">10:27:51</p>
+                <p id = "live-time" style="font-size:40px;margin-top:-7.5px;">10:27:51</p>
             </div>
             <div>
                 <div class = "portgrid">
@@ -43,15 +77,15 @@
             </div>
             <div>
                 <p style="width:100%;height:100%;color:#A0A0A0;margin-top:10px;">TARGET HITS</p>
-                <img src="../static/imgs/hits.svg" alt="" style="width: 90%;">
+                <canvas id="waveform" style="width:100%; height:90%;position:relative;z-index:-1"></canvas>
             </div>
             <div>
                 <p style="width:100%;height:100%;color:#A0A0A0;margin-top:10px;">SPIKES CHART</p>
-                <img src="../static/imgs/chart.svg" alt="" style="width: 90%;">
+                <canvas id="network" style="width:100%; height:90%;position:relative;z-index:-1"></canvas>
             </div>
             <div>
                 <p style="width:100%;height:100%;color:#A0A0A0;margin-top:10px;">MEMORY SYNCS</p>
-                <img src="../static/imgs/syncs.svg" alt="" style="width: 90%;">
+                <canvas id="frequency" style="width:100%; height:90%;position:relative;z-index:-1"></canvas>
             </div>
         </div>
         <div class="gridp2">
@@ -68,7 +102,7 @@
             <div>
                 <p id = "p" style="width:100%;height:100%;line-height:120%;margin-top:5%;color:#757575;"> 
                     #c<span>o</span>de xiomanyc <span>breached</span> opp <br>
-                    #nova hyper’ed failed 67%-1 <br>
+                    #nova hyper'ed failed 67%-1 <br>
                     d3v51ans.<span>exe</span> 5.3% upload.tk <br>
                     aD#ro1que.rar extracted <br>
                     <span>official</span> cosmicc.pcap done
@@ -103,8 +137,15 @@
                     </div>
                 </div>
             </div>
-            <div class="picrow">
-                <img src="../static/imgs/side.svg" alt="">
+            <div class="picrow" style="position:relative;">
+                <p style="position:absolute;color:#fff;left:5px;top:25px;margin:0;z-index:4;">ABILITY SIGNALS</p>
+                <div class="live-graph-container">
+                    <canvas id="liveGraphCanvas" class="live-graph-canvas"></canvas>
+                    <div class="graph-markers">
+                        <div class="marker" id="marker1"></div>
+                        <div class="marker" id="marker2"></div>
+                    </div>
+                </div>
                 <div style="padding: 20px;">
                     <img src="../static/imgs/abilitybuxa.svg" alt="">
                 </div>
@@ -124,5 +165,255 @@
             })
         }) 
     </script>
+    <script>
+const waveCanvas = document.getElementById("waveform");
+const freqCanvas = document.getElementById("frequency");
+const netCanvas  = document.getElementById("network");
+
+const waveCtx = waveCanvas.getContext("2d");
+const freqCtx = freqCanvas.getContext("2d");
+const netCtx  = netCanvas.getContext("2d");
+
+function resizeCanvas(c) {
+    c.width = c.offsetWidth;
+    c.height = c.offsetHeight;
+}
+
+[waveCanvas, freqCanvas, netCanvas].forEach(resizeCanvas);
+
+let waveData = Array(100).fill(0).map(() => Math.random());
+
+function drawWaveform() {
+    const w = waveCanvas.width;
+    const h = waveCanvas.height;
+
+    waveCtx.fillStyle = "#000";
+    waveCtx.fillRect(0, 0, w, h);
+
+    waveCtx.strokeStyle = "rgba(255,0,0,0.15)";
+    for (let i = 0; i < 10; i++) {
+        waveCtx.beginPath();
+        waveCtx.moveTo(0, (h/10)*i);
+        waveCtx.lineTo(w, (h/10)*i);
+        waveCtx.stroke();
+    }
+
+    waveData.shift();
+    waveData.push(Math.sin(Date.now()/200)*0.5 + 0.5 + (Math.random()-0.5)*0.2);
+
+    waveCtx.beginPath();
+    waveCtx.strokeStyle = "#ff3030";
+    waveCtx.lineWidth = 2;
+
+    const step = w / waveData.length;
+    waveData.forEach((v, i) => {
+        let x = i * step;
+        let y = h/2 + (v - 0.5) * h * 0.8;
+        i === 0 ? waveCtx.moveTo(x,y) : waveCtx.lineTo(x,y);
+    });
+    waveCtx.stroke();
+}
+
+let freqBars = Array(60).fill(0).map(()=>Math.random()*100);
+
+function drawFrequency() {
+    const w = freqCanvas.width;
+    const h = freqCanvas.height;
+
+    freqCtx.fillStyle = "#000";
+    freqCtx.fillRect(0,0,w,h);
+
+    const bw = w / freqBars.length;
+
+    freqBars = freqBars.map(v => v*0.93 + Math.random()*100*0.07);
+
+    freqBars.forEach((v, i) => {
+        const bh = (v/100) * h * 0.9;
+        freqCtx.fillStyle = "#ff3030";
+        freqCtx.fillRect(i*bw + 1, h - bh, bw - 2, bh);
+    });
+}
+
+let nodes = [];
+for (let i = 0; i < 12; i++) {
+    nodes.push({
+        x: Math.random(),
+        y: Math.random(),
+        vx: (Math.random()-0.5)*0.002,
+        vy: (Math.random()-0.5)*0.002
+    });
+}
+
+function drawNetwork() {
+    const w = netCanvas.width;
+    const h = netCanvas.height;
+
+    netCtx.fillStyle = "#000";
+    netCtx.fillRect(0,0,w,h);
+
+    nodes.forEach(n => {
+        n.x += n.vx;
+        n.y += n.vy;
+
+        if (n.x < 0 || n.x > 1) n.vx *= -1;
+        if (n.y < 0 || n.y > 1) n.vy *= -1;
+    });
+
+    netCtx.strokeStyle = "rgba(255,0,0,0.25)";
+    nodes.forEach((a, i) => {
+        for (let j = i+1; j < nodes.length; j++) {
+            const b = nodes[j];
+            const dx = (b.x - a.x) * w;
+            const dy = (b.y - a.y) * h;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+
+            if (dist < 160) {
+                netCtx.beginPath();
+                netCtx.moveTo(a.x*w, a.y*h);
+                netCtx.lineTo(b.x*w, b.y*h);
+                netCtx.stroke();
+            }
+        }
+    });
+
+    nodes.forEach(n => {
+        netCtx.fillStyle = "#ff3030";
+        netCtx.beginPath();
+        netCtx.arc(n.x*w, n.y*h, 4, 0, Math.PI*2);
+        netCtx.fill();
+    });
+}
+
+function animate() {
+    drawWaveform();
+    drawFrequency();
+    drawNetwork();
+    requestAnimationFrame(animate);
+}
+animate();
+
+window.addEventListener("resize", () => {
+    [waveCanvas, freqCanvas, netCanvas].forEach(resizeCanvas);
+});
+</script>
+
+<!-- Live Graph Animation Script -->
+<script>
+    const liveCanvas = document.getElementById('liveGraphCanvas');
+    const liveCtx = liveCanvas.getContext('2d');
+    
+    function resizeLiveCanvas() {
+        liveCanvas.width = liveCanvas.offsetWidth * 2;
+        liveCanvas.height = liveCanvas.offsetHeight * 2;
+    }
+    resizeLiveCanvas();
+
+    const waves = [];
+    const numWaves = 4;
+    
+    for (let i = 0; i < numWaves; i++) {
+        waves.push({
+            speed: 0.02 + Math.random() * 0.03,
+            amplitude: 80 + Math.random() * 120,
+            frequency: 0.003 + Math.random() * 0.005,
+            offset: Math.random() * Math.PI * 2,
+            color: `rgb(${200 + Math.floor(Math.random() * 55)}, ${Math.floor(Math.random() * 50)}, ${Math.floor(Math.random() * 30)})`
+        });
+    }
+
+    let time = 0;
+
+    function drawLiveGrid() {
+        liveCtx.strokeStyle = '#1a0000';
+        liveCtx.lineWidth = 1;
+
+        for (let x = 0; x < liveCanvas.width; x += 50) {
+            liveCtx.beginPath();
+            liveCtx.moveTo(x, 0);
+            liveCtx.lineTo(x, liveCanvas.height);
+            liveCtx.stroke();
+        }
+
+        for (let y = 0; y < liveCanvas.height; y += 50) {
+            liveCtx.beginPath();
+            liveCtx.moveTo(0, y);
+            liveCtx.lineTo(liveCanvas.width, y);
+            liveCtx.stroke();
+        }
+    }
+
+    function drawLiveWave(wave) {
+        liveCtx.beginPath();
+        liveCtx.strokeStyle = wave.color;
+        liveCtx.lineWidth = 3;
+        liveCtx.shadowBlur = 10;
+        liveCtx.shadowColor = wave.color;
+
+        for (let x = 0; x < liveCanvas.width; x += 4) {
+            const y = liveCanvas.height / 2 + 
+                Math.sin(x * wave.frequency + time * wave.speed + wave.offset) * wave.amplitude +
+                Math.sin(x * wave.frequency * 2.5 + time * wave.speed * 1.5) * (wave.amplitude * 0.3);
+            
+            if (x === 0) {
+                liveCtx.moveTo(x, y);
+            } else {
+                liveCtx.lineTo(x, y);
+            }
+        }
+
+        liveCtx.stroke();
+        liveCtx.shadowBlur = 0;
+    }
+
+    function animateLiveGraph() {
+        liveCtx.fillStyle = '#000000';
+        liveCtx.fillRect(0, 0, liveCanvas.width, liveCanvas.height);
+
+        drawLiveGrid();
+
+        waves.forEach(wave => {
+            drawLiveWave(wave);
+        });
+
+        time += 1;
+        requestAnimationFrame(animateLiveGraph);
+    }
+
+    const marker1 = document.getElementById('marker1');
+    const marker2 = document.getElementById('marker2');
+
+    function moveMarkers() {
+        const x1 = 15 + Math.sin(Date.now() * 0.001) * 10;
+        const y1 = 30 + Math.cos(Date.now() * 0.0015) * 15;
+        marker1.style.left = x1 + '%';
+        marker1.style.top = y1 + '%';
+
+        const x2 = 70 + Math.cos(Date.now() * 0.0012) * 8;
+        const y2 = 55 + Math.sin(Date.now() * 0.0018) * 12;
+        marker2.style.left = x2 + '%';
+        marker2.style.top = y2 + '%';
+    }
+
+    setInterval(moveMarkers, 50);
+    animateLiveGraph();
+
+    window.addEventListener('resize', resizeLiveCanvas);
+</script>
+
+<script>
+    function updateClock() {
+    const now = new Date();
+    
+    let h = now.getHours().toString().padStart(2, "0");
+    let m = now.getMinutes().toString().padStart(2, "0");
+    let s = now.getSeconds().toString().padStart(2, "0");
+
+    document.getElementById("live-time").textContent = `${h}:${m}:${s}`;
+}
+
+setInterval(updateClock, 1000);
+
+updateClock();
+</script>
 </body>
-</html>
+</html> 

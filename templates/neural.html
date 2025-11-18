@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            padding: 20px;
+        }
+
+        canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .terminal {
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #ff0040;
+            padding: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+            box-shadow: 0 0 20px rgba(255, 0, 64, 0.3);
+        }
+
+        .log-line {
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+            color: #00ff00;
+        }
+
+        .log-line.warning {
+            color: #ffaa00;
+        }
+
+        .log-line.error {
+            color: #ff0040;
+        }
+
+        .log-line.info {
+            color: #00aaff;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .breach {
+            color: #ff0040;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ff0040;
+        }
+
+        .highlight {
+            color: #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="waveform"></canvas>
+        <canvas id="networkGraph"></canvas>
+        <div class="terminal" id="terminal"></div>
+    </div>
+
+    <script>
+        // Waveform Canvas Setup
+        const waveCanvas = document.getElementById('waveform');
+        const waveCtx = waveCanvas.getContext('2d');
+        waveCanvas.width = 1200;
+        waveCanvas.height = 200;
+
+        // Network Graph Canvas Setup
+        const netCanvas = document.getElementById('networkGraph');
+        const netCtx = netCanvas.getContext('2d');
+        netCanvas.width = 1200;
+        netCanvas.height = 250;
+
+        // Waveform data
+        const bars = 40;
+        const barData = Array(bars).fill(0).map(() => Math.random());
+
+        function drawWaveform() {
+            waveCtx.fillStyle = '#0a0a0a';
+            waveCtx.fillRect(0, 0, waveCanvas.width, waveCanvas.height);
+
+            const barWidth = waveCanvas.width / bars;
+            const maxHeight = waveCanvas.height * 0.8;
+
+            for (let i = 0; i < bars; i++) {
+                // Update bar height with random fluctuation
+                barData[i] += (Math.random() - 0.5) * 0.15;
+                barData[i] = Math.max(0.1, Math.min(1, barData[i]));
+
+                const height = barData[i] * maxHeight;
+                const x = i * barWidth + barWidth * 0.3;
+                const y = waveCanvas.height / 2;
+
+                // Draw vertical line
+                waveCtx.strokeStyle = '#333';
+                waveCtx.lineWidth = 1;
+                waveCtx.beginPath();
+                waveCtx.moveTo(x, 0);
+                waveCtx.lineTo(x, waveCanvas.height);
+                waveCtx.stroke();
+
+                // Draw red bar
+                const gradient = waveCtx.createLinearGradient(0, y - height/2, 0, y + height/2);
+                gradient.addColorStop(0, '#ff0040');
+                gradient.addColorStop(0.5, '#ff3366');
+                gradient.addColorStop(1, '#ff0040');
+
+                waveCtx.fillStyle = gradient;
+                waveCtx.fillRect(x - 3, y - height/2, 6, height);
+
+                // Glow effect
+                waveCtx.shadowBlur = 15;
+                waveCtx.shadowColor = '#ff0040';
+                waveCtx.fillRect(x - 3, y - height/2, 6, height);
+                waveCtx.shadowBlur = 0;
+            }
+        }
+
+        // Network Graph
+        const nodes = [];
+        const connections = [];
+
+        for (let i = 0; i < 8; i++) {
+            nodes.push({
+                x: Math.random() * (netCanvas.width - 100) + 50,
+                y: Math.random() * (netCanvas.height - 100) + 50,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5
+            });
+        }
+
+        function drawNetworkGraph() {
+            netCtx.fillStyle = '#0a0a0a';
+            netCtx.fillRect(0, 0, netCanvas.width, netCanvas.height);
+
+            // Update and draw connections
+            netCtx.strokeStyle = 'rgba(255, 0, 64, 0.3)';
+            netCtx.lineWidth = 1;
+
+            connections.length = 0;
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const dx = nodes[j].x - nodes[i].x;
+                    const dy = nodes[j].y - nodes[i].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 200 && Math.random() > 0.3) {
+                        connections.push([i, j]);
+                        netCtx.beginPath();
+                        netCtx.moveTo(nodes[i].x, nodes[i].y);
+                        netCtx.lineTo(nodes[j].x, nodes[j].y);
+                        netCtx.stroke();
+                    }
+                }
+            }
+
+            // Update and draw nodes
+            nodes.forEach(node => {
+                node.x += node.vx;
+                node.y += node.vy;
+
+                if (node.x < 50 || node.x > netCanvas.width - 50) node.vx *= -1;
+                if (node.y < 50 || node.y > netCanvas.height - 50) node.vy *= -1;
+
+                netCtx.fillStyle = '#ff0040';
+                netCtx.shadowBlur = 10;
+                netCtx.shadowColor = '#ff0040';
+                netCtx.beginPath();
+                netCtx.arc(node.x, node.y, 4, 0, Math.PI * 2);
+                netCtx.fill();
+                netCtx.shadowBlur = 0;
+            });
+
+            // Draw base line
+            netCtx.strokeStyle = '#ff0040';
+            netCtx.lineWidth = 2;
+            netCtx.beginPath();
+            netCtx.moveTo(0, netCanvas.height - 10);
+            netCtx.lineTo(netCanvas.width, netCanvas.height - 10);
+            netCtx.stroke();
+        }
+
+        // Terminal logs
+        const terminal = document.getElementById('terminal');
+        const logs = [
+            { text: '#code xiomanyc <span class="breach">breached</span> opp', type: 'error' },
+            { text: '#nova hyper\'ed failed 67%-1', type: 'warning' },
+            { text: 'd3v51ans.<span class="highlight">exe</span> 5.3% upload.tk', type: 'info' },
+            { text: 'aD#ro1que.par extracted', type: 'info' },
+            { text: 'Scanning network topology...', type: '' },
+            { text: 'Analyzing packet streams...', type: 'info' },
+            { text: 'Intrusion detected: 192.168.1.47', type: 'error' },
+            { text: 'Firewall breach attempt blocked', type: 'warning' },
+            { text: 'Extracting encrypted payload...', type: 'info' },
+            { text: 'Hash collision detected: MD5', type: 'error' },
+            { text: 'Port scanning: 22, 80, 443, 8080', type: 'info' },
+            { text: 'SQL injection attempt logged', type: 'warning' },
+            { text: 'Zero-day exploit identified', type: 'error' },
+            { text: 'Malware signature: 0x4E5F5A', type: 'warning' }
+        ];
+
+        let logIndex = 0;
+
+        function addLog() {
+            if (terminal.children.length > 8) {
+                terminal.removeChild(terminal.firstChild);
+            }
+
+            const log = logs[logIndex % logs.length];
+            const line = document.createElement('div');
+            line.className = `log-line ${log.type}`;
+            line.innerHTML = `[${new Date().toLocaleTimeString()}] ${log.text}`;
+            terminal.appendChild(line);
+
+            logIndex++;
+        }
+
+        // Animation loop
+        function animate() {
+            drawWaveform();
+            drawNetworkGraph();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+        addLog();
+        setInterval(addLog, 2000);
+    </script>
+</body>
+</html>
