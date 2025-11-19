@@ -14,7 +14,7 @@ flask
 flask_sqlalchemy
 flask_login
 google.generativeai
-torch
+torch==2.3.0 --index-url https://download.pytorch.org/whl/cu121
 PIL
 threading
 numpy
