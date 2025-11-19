@@ -107,7 +107,46 @@
                 </div>
             </div>
         </div>
-        <div></div>
+        <div class="aigrid" style="height: 95vh;">
+            <div style="position:relative;">
+                <img style="position:absolute;" src="../static/imgs/hologram.svg" alt="">
+                <div id="ai-terminal" class="ai-terminal">
+                    <div class="ai-output"></div>
+                    <input type="text" id="ai-input" class="ai-input" placeholder="geni:// enter command">
+                </div>
+            </div>
+            <div class="abilitygrid" style="position:relative;">
+                <div class="buxagrid">
+                    <div style="position:relative;height:100%;">
+                        <img src="../static/imgs/abilitybuxa.svg" alt="">
+                        <p style="margin:0;font-size:20px;opacity:0.7;position:absolute;left:50%;top:50%;transform:translate(-50%, -50%);z-index:4;color:#fff;">1</p>
+                    </div>
+                    <div style="position:relative;height:100%;">
+                        <img src="../static/imgs/abilitybuxa.svg" alt="">
+                        <p style="margin:0;font-size:20px;opacity:0.7;position:absolute;left:50%;top:50%;transform:translate(-50%, -50%);z-index:4;color:#fff;">2</p>
+                    </div>
+                    <div style="position:relative;height:100%;">
+                        <img src="../static/imgs/abilitybuxa.svg" alt="">
+                        <p style="margin:0;font-size:20px;opacity:0.7;position:absolute;left:50%;top:50%;transform:translate(-50%, -50%);z-index:4;color:#fff;">3</p>
+                    </div>
+                </div>
+                <img style="position:relative;top:50%;left:50%;transform:translate(-50%, -50%)" src="../static/imgs/danger.svg" alt="">
+                <div class="buxagrid">
+                    <div style="position:relative;height:100%;">
+                        <img src="../static/imgs/abilitybuxa.svg" alt="">
+                        <p style="margin:0;font-size:20px;opacity:0.7;position:absolute;left:50%;top:50%;transform:translate(-50%, -50%);z-index:4;color:#fff;">4</p>
+                    </div>
+                    <div style="position:relative;height:100%;">
+                        <img src="../static/imgs/abilitybuxa.svg" alt="">
+                        <p style="margin:0;font-size:20px;opacity:0.7;position:absolute;left:50%;top:50%;transform:translate(-50%, -50%);z-index:4;color:#fff;">5</p>
+                    </div>
+                    <div style="position:relative;height:100%;">
+                        <img src="../static/imgs/abilitybuxa.svg" alt="">
+                        <p style="margin:0;font-size:20px;opacity:0.7;position:absolute;left:50%;top:50%;transform:translate(-50%, -50%);z-index:4;color:#fff;">6</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="gridl2">
             <div>
                 <img src="../static/imgs/xploit.png" alt="" style="height: 100%;">
@@ -313,5 +352,41 @@
     addLog();
     setInterval(addLog, 2000);
     </script>
+<script>
+
+async function sendToGemini(prompt) {
+    const res = await fetch("/gemini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+    return data.reply;
+}
+
+const aiOutput = document.querySelector(".ai-output");
+const aiInput = document.getElementById("ai-input");
+
+aiInput.addEventListener("keydown", async (e) => {
+    if (e.key === "Enter") {
+        const text = aiInput.value.trim();
+        if (!text) return;
+
+        // Show user command
+        aiOutput.innerHTML += `<div style="color:#ff3366">user> ${text}</div>`;
+        aiInput.value = "";
+
+        // Get real Gemini response
+        const reply = await sendToGemini(text);
+
+        // Display Gemini response
+        aiOutput.innerHTML += `<div style="color:#681B1B">geni> ${reply}</div>`;
+        aiOutput.scrollTop = aiOutput.scrollHeight;
+    }
+});
+
+</script>
+
 </body>
 </html>

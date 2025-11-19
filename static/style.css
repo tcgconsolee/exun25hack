@@ -134,6 +134,12 @@ a {
     width: 100%;
     height: 100%;
 }
+.picrow div:nth-child(3) img {
+    cursor: pointer;
+}
+.picrow p, .skillrow p {
+    pointer-events:none;
+}
 .skillgrid {
     display: grid;
     grid-template-columns: 30% 30% 30%;
@@ -147,6 +153,7 @@ a {
 .skillrow img {
     width: 100%;
     height: 100%;
+    cursor:pointer;
 }
 .surv {
     display: grid;
@@ -163,4 +170,56 @@ a {
     align-items: center;
     padding: 5%;
 
+}
+.aigrid {
+    display:grid;
+    grid-template-rows: 55% 40%;
+    row-gap: 2.5%;
+}
+.aigrid img {
+    width: 100%;
+    height: 100%;
+}
+.abilitygrid {
+    display: grid;
+    grid-template-columns: 30% 30% 30%;
+    column-gap: 5%;
+}
+.buxagrid {
+    display: grid;
+    grid-template-rows: 30% 30% 30%;
+    row-gap: 5%;
+}
+.ai-terminal {
+    padding: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    color: #681B1B;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    height: 80%;
+    width: 80%;
+    top: 5%;
+    left: 5%;
+}
+
+.ai-output {
+    flex: 1;
+    overflow-y: auto;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.ai-input {
+    background: transparent;
+    border: none;
+    border-top: 1px solid #681B1B;
+    padding: 6px;
+    color: #ff3366;
+    font-size: 14px;
+    outline: none;
+}
+.ai-input::placeholder {
+    color: #444;
 }

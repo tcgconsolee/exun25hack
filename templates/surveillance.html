@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="../static/style.css">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+    <style>
+        canvas {
+            display: block;
+        }
+    </style>
 </head>
 <body>
      <div class="menu">
@@ -45,42 +49,297 @@
             <div>
                 <p id = "p" style="width:100%;height:100%;line-height:120%;margin-top:5%;color:#757575;text-align:center;"> 
                     #c<span>o</span>de xiomanyc <span>breached</span> opp <br>
-                    #nova hyper’ed failed 67%-1 <br>
+                    #nova hyper'ed failed 67%-1 <br>
                     d3v51ans.<span>exe</span> 5.3% upload.tk <br>
                     aD#ro1que.rar extracted <br>
                     <span>official</span> cosmicc.pcap done
                 </p>
             </div>
             <div>
-                <img src="../static/imgs/surv1.svg" alt="" style="height:100%;margin-top:10px;">
+                <canvas id="surv1" style="height:100%;width:100%;margin-top:10px;"></canvas>
             </div>
         </div>
         <div>
-            <img src="../static/imgs/surv.svg" alt="" style="height:100%;position:relative;left:50%;transform:translate(-50%);">
+            <canvas id="surv" style="height:100%;position:relative;left:50%;transform:translate(-50%);"></canvas>
         </div>
         <div class="surv" style="position:relative;left:50%;transform:translate(-50%, -50%);top:50%">
             <div>
-                <img src="../static/imgs/playback.svg" alt="">
+                <img src="../static/imgs/playback.svg" alt=""> 
             </div>
             <div>
-                <img src="../static/imgs/playcharts.svg" alt="">
+                <canvas id="playcharts" style="width:100%;"></canvas>
             </div>
         </div>
     </div>
     <script>
     function updateClock() {
-    const now = new Date();
+        const now = new Date();
+        
+        let h = now.getHours().toString().padStart(2, "0");
+        let m = now.getMinutes().toString().padStart(2, "0");
+        let s = now.getSeconds().toString().padStart(2, "0");
+
+        document.getElementById("live-time").textContent = `${h}:${m}:${s}`;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    const CRIMSON = '#DC143C';
+    const DARK_CRIMSON = '#8B0000';
+    const BG = '#000000';
+    const GRAY = '#333333';
+    const LIGHT_GRAY = '#555555';
+
+    // ============ SURV1: Horizontal bars with hatching ============
+    const surv1Canvas = document.getElementById('surv1');
+    const surv1Ctx = surv1Canvas.getContext('2d');
     
-    let h = now.getHours().toString().padStart(2, "0");
-    let m = now.getMinutes().toString().padStart(2, "0");
-    let s = now.getSeconds().toString().padStart(2, "0");
+    function initSurv1() {
+        const parent = surv1Canvas.parentElement;
+        surv1Canvas.width = parent.offsetWidth;
+        surv1Canvas.height = parent.offsetHeight;
+    }
+    initSurv1();
+    
+    const barCount = 7;
+    const barHeights = Array(barCount).fill(0).map(() => Math.random() * 0.6 + 0.2);
+    
+    function drawSurv1() {
+        surv1Ctx.fillStyle = BG;
+        surv1Ctx.fillRect(0, 0, surv1Canvas.width, surv1Canvas.height);
+        
+        const barWidth = Math.min(50, surv1Canvas.width / (barCount * 1.3));
+        const gap = barWidth * 0.3;
+        const startX = (surv1Canvas.width - (barCount * barWidth + (barCount - 1) * gap)) / 2;
+        const maxHeight = surv1Canvas.height * 0.75;
+        
+        for (let i = 0; i < barCount; i++) {
+            barHeights[i] += (Math.random() - 0.5) * 0.03;
+            barHeights[i] = Math.max(0.15, Math.min(0.85, barHeights[i]));
+            
+            const x = startX + i * (barWidth + gap);
+            const height = barHeights[i] * maxHeight;
+            const y = surv1Canvas.height - height - 15;
+            
+            // Outer border
+            surv1Ctx.strokeStyle = CRIMSON;
+            surv1Ctx.lineWidth = 1.5;
+            surv1Ctx.strokeRect(x, y, barWidth, height);
+            
+            // Fill
+            surv1Ctx.fillStyle = CRIMSON;
+            surv1Ctx.fillRect(x + 1, y + 1, barWidth - 2, height - 2);
+            
+            // Diagonal hatching
+            surv1Ctx.strokeStyle = BG;
+            surv1Ctx.lineWidth = 1.5;
+            for (let h = 0; h < height; h += 6) {
+                surv1Ctx.beginPath();
+                surv1Ctx.moveTo(x, y + h);
+                surv1Ctx.lineTo(x + barWidth, y + h + barWidth * 0.4);
+                surv1Ctx.stroke();
+            }
+        }
+        
+        requestAnimationFrame(drawSurv1);
+    }
+    drawSurv1();
 
-    document.getElementById("live-time").textContent = `${h}:${m}:${s}`;
-}
+    // ============ SURV: Vertical bars + dot grid ============
+    const survCanvas = document.getElementById('surv');
+    const survCtx = survCanvas.getContext('2d');
+    
+    function initSurv() {
+        const parent = survCanvas.parentElement;
+        survCanvas.width = parent.offsetWidth;
+        survCanvas.height = parent.offsetHeight;
+    }
+    initSurv();
+    
+    const vBarCount = 3;
+    const vBarHeights = [0.25, 0.75, 0.35];
+    const vBarTargets = [0.25, 0.75, 0.35];
+    let dotPhase = 0;
+    
+    function drawSurv() {
+        survCtx.fillStyle = BG;
+        survCtx.fillRect(0, 0, survCanvas.width, survCanvas.height);
+        
+        const barWidth = Math.min(55, survCanvas.width / 5.5);
+        const gap = barWidth * 0.6;
+        const startX = (survCanvas.width - (vBarCount * barWidth + (vBarCount - 1) * gap)) / 2;
+        const maxHeight = survCanvas.height * 0.55;
+        const startY = survCanvas.height * 0.2;
+        
+        // Dot grid pattern
+        const dotSpacing = 18;
+        const dotSize = 1.5;
+        for (let y = 40; y < survCanvas.height - 40; y += dotSpacing) {
+            for (let x = 15; x < survCanvas.width - 15; x += dotSpacing) {
+                const noise = Math.sin(x * 0.05 + dotPhase) * Math.cos(y * 0.05 + dotPhase);
+                const active = noise > 0.3;
+                survCtx.fillStyle = active ? CRIMSON : GRAY;
+                survCtx.beginPath();
+                survCtx.arc(x, y, dotSize, 0, Math.PI * 2);
+                survCtx.fill();
+            }
+        }
+        dotPhase += 0.02;
+        
+        // Vertical bars
+        for (let i = 0; i < vBarCount; i++) {
+            if (Math.random() < 0.015) {
+                vBarTargets[i] = Math.random() * 0.6 + 0.15;
+            }
+            vBarHeights[i] += (vBarTargets[i] - vBarHeights[i]) * 0.08;
+            
+            const x = startX + i * (barWidth + gap);
+            const height = vBarHeights[i] * maxHeight;
+            const y = startY + maxHeight - height;
+            
+            if (i === 1) {
+                // Middle bar - crimson with hatching
+                survCtx.strokeStyle = CRIMSON;
+                survCtx.lineWidth = 1.5;
+                survCtx.strokeRect(x, y, barWidth, height);
+                
+                survCtx.fillStyle = CRIMSON;
+                survCtx.fillRect(x + 1, y + 1, barWidth - 2, height - 2);
+                
+                // Hatching
+                survCtx.strokeStyle = BG;
+                survCtx.lineWidth = 1.5;
+                for (let h = 0; h < height; h += 6) {
+                    survCtx.beginPath();
+                    survCtx.moveTo(x, y + h);
+                    survCtx.lineTo(x + barWidth, y + h + barWidth * 0.4);
+                    survCtx.stroke();
+                }
+            } else {
+                // Side bars - gray outline only
+                survCtx.strokeStyle = LIGHT_GRAY;
+                survCtx.lineWidth = 1.5;
+                survCtx.strokeRect(x, y, barWidth, height);
+                
+                survCtx.fillStyle = GRAY;
+                survCtx.fillRect(x + 1, y + 1, barWidth - 2, height - 2);
+            }
+        }
+        
+        requestAnimationFrame(drawSurv);
+    }
+    drawSurv();
 
-setInterval(updateClock, 1000);
+    // ============ PLAYCHARTS: Clean waveform + line graph ============
+    const playchartsCanvas = document.getElementById('playcharts');
+    const playchartsCtx = playchartsCanvas.getContext('2d');
+    
+    function initPlaycharts() {
+        const parent = playchartsCanvas.parentElement;
+        playchartsCanvas.width = parent.offsetWidth;
+        playchartsCanvas.height = parent.offsetHeight || 380;
+    }
+    initPlaycharts();
+    
+    let waveOffset = 0;
+    const points = [];
+    const numPoints = 70;
+    for (let i = 0; i < numPoints; i++) {
+        points.push(Math.random() * 0.4 + 0.3);
+    }
+    
+    function drawPlaycharts() {
+        playchartsCtx.fillStyle = BG;
+        playchartsCtx.fillRect(0, 0, playchartsCanvas.width, playchartsCanvas.height);
+        
+        const waveHeight = playchartsCanvas.height * 0.32;
+        const polyHeight = playchartsCanvas.height * 0.5;
+        const polyY = waveHeight + 40;
+        
+        // === WAVEFORM ===
+        const bars = Math.floor(playchartsCanvas.width / 18);
+        const barWidth = 12;
+        const gap = (playchartsCanvas.width - bars * barWidth) / (bars + 1);
+        
+        for (let i = 0; i < bars; i++) {
+            const x = gap + i * (barWidth + gap);
+            const amp = Math.abs(Math.sin((i + waveOffset) * 0.25)) * 0.8 + 0.2;
+            const height = amp * (waveHeight * 0.65);
+            const y = waveHeight / 2 - height / 2;
+            
+            const isAccent = i % 5 === 0;
+            playchartsCtx.fillStyle = isAccent ? '#FFFFFF' : CRIMSON;
+            playchartsCtx.fillRect(x, y, barWidth, height);
+        }
+        waveOffset += 0.08;
+        
+        // === LINE GRAPH ===
+        points.shift();
+        points.push(Math.random() * 0.4 + 0.3);
+        
+        // Subtle grid
+        playchartsCtx.strokeStyle = '#1a1a1a';
+        playchartsCtx.lineWidth = 0.5;
+        for (let i = 0; i <= 4; i++) {
+            const y = polyY + (i / 4) * polyHeight;
+            playchartsCtx.beginPath();
+            playchartsCtx.moveTo(0, y);
+            playchartsCtx.lineTo(playchartsCanvas.width, y);
+            playchartsCtx.stroke();
+        }
+        
+        // Filled polygon
+        playchartsCtx.fillStyle = 'rgba(85, 85, 85, 0.4)';
+        playchartsCtx.beginPath();
+        playchartsCtx.moveTo(0, polyY + polyHeight);
+        for (let i = 0; i < points.length; i++) {
+            const x = (i / (points.length - 1)) * playchartsCanvas.width;
+            const y = polyY + polyHeight - points[i] * polyHeight * 0.85;
+            playchartsCtx.lineTo(x, y);
+        }
+        playchartsCtx.lineTo(playchartsCanvas.width, polyY + polyHeight);
+        playchartsCtx.closePath();
+        playchartsCtx.fill();
+        
+        // Main line
+        playchartsCtx.strokeStyle = '#FFFFFF';
+        playchartsCtx.lineWidth = 1.5;
+        playchartsCtx.beginPath();
+        for (let i = 0; i < points.length; i++) {
+            const x = (i / (points.length - 1)) * playchartsCanvas.width;
+            const y = polyY + polyHeight - points[i] * polyHeight * 0.85;
+            if (i === 0) playchartsCtx.moveTo(x, y);
+            else playchartsCtx.lineTo(x, y);
+        }
+        playchartsCtx.stroke();
+        
+        // Crimson accent line
+        playchartsCtx.strokeStyle = CRIMSON;
+        playchartsCtx.lineWidth = 1;
+        playchartsCtx.beginPath();
+        playchartsCtx.moveTo(0, polyY + 25);
+        playchartsCtx.lineTo(playchartsCanvas.width, polyY + 25);
+        playchartsCtx.stroke();
+        
+        // Sparse accent dots
+        for (let i = 0; i < 30; i++) {
+            const x = Math.random() * playchartsCanvas.width;
+            const y = polyY + Math.random() * 40;
+            playchartsCtx.fillStyle = CRIMSON;
+            playchartsCtx.fillRect(x, y, 1.5, 1.5);
+        }
+        
+        requestAnimationFrame(drawPlaycharts);
+    }
+    drawPlaycharts();
 
-updateClock();
-</script>
+    // Resize handler
+    window.addEventListener('resize', () => {
+        initSurv1();
+        initSurv();
+        initPlaycharts();
+    });
+    </script>
 </body>
 </html>

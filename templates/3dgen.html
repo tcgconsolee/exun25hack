@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TripoSR 3D Model Generator</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 1.1em;
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        .input-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .upload-zone {
+            border: 3px dashed rgba(96, 165, 250, 0.5);
+            border-radius: 15px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(59, 130, 246, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone:hover {
+            border-color: #60a5fa;
+            background: rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .upload-zone.dragover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.2);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .upload-text {
+            font-size: 1.3em;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            font-size: 0.9em;
+            color: #64748b;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        #imagePreview {
+            margin-top: 30px;
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 15px;
+            display: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(96, 165, 250, 0.3);
+        }
+
+        .preview-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: none;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .remove-image:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
+        .preview-container:hover .remove-image {
+            display: block;
+        }
+
+        #generateBtn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #generateBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        #generateBtn:disabled {
+            background: linear-gradient(135deg, #374151, #4b5563);
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+
+        #generateBtn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        #generateBtn:hover:not(:disabled)::before {
+            left: 100%;
+        }
+
+        .progress-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .status-text {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: #60a5fa;
+        }
+
+        .phase-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .phase {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 0 5px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #64748b;
+            transition: all 0.3s ease;
+        }
+
+        .phase.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.5);
+        }
+
+        .phase.complete {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.5);
+        }
+
+        #progressBar {
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #progressFill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa, #8b5cf6);
+            background-size: 200% 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .viewer-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-top: 30px;
+            display: none;
+        }
+
+        .viewer-card.visible {
+            display: block;
+        }
+
+        .viewer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .viewer-title {
+            font-size: 1.5em;
+            color: #60a5fa;
+        }
+
+        .download-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        #viewer {
+            width: 100%;
+            height: 600px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .controls-hint {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9em;
+            margin-top: 15px;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature-item {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .feature-text {
+            font-size: 0.9em;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .input-card {
+                padding: 25px;
+            }
+
+            .upload-zone {
+                padding: 40px 20px;
+            }
+
+            #viewer {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🚀 TripoSR 3D Generator</h1>
+        <p>Transform your images into stunning 3D models with AI</p>
+        <span class="badge">POWERED BY STABILITY AI</span>
+        
+        <div class="feature-list">
+            <div class="feature-item">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-text">Lightning Fast</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🎨</div>
+                <div class="feature-text">High Quality</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔄</div>
+                <div class="feature-text">Auto Background Removal</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">💾</div>
+                <div class="feature-text">Export as OBJ</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-card">
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('imageInput').click()">
+            <span class="upload-icon">📸</span>
+            <div class="upload-text">Click or Drag to Upload Image</div>
+            <div class="upload-subtext">Supports JPG, PNG, WEBP • Best results with clear object photos</div>
+        </div>
+        
+        <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+        
+        <div class="preview-container" id="previewContainer">
+            <img id="imagePreview" alt="Preview">
+            <button class="remove-image" onclick="removeImage()">×</button>
+        </div>
+
+        <button id="generateBtn" onclick="generate3D()" disabled>
+            <span id="btnText">🎯 Upload an Image to Start</span>
+        </button>
+
+        <div class="progress-section" id="progressSection">
+            <div class="status-text" id="statusText">⏳ Processing your image...</div>
+            
+            <div class="phase-indicator">
+                <div class="phase" id="phase1">📥 Preprocessing</div>
+                <div class="phase" id="phase2">🧠 Generating</div>
+                <div class="phase" id="phase3">🔨 Extracting</div>
+                <div class="phase" id="phase4">💾 Saving</div>
+            </div>
+            
+            <div id="progressBar">
+                <div id="progressFill">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="viewer-card" id="viewerCard">
+        <div class="viewer-header">
+            <div class="viewer-title">✨ Your 3D Model</div>
+            <button class="download-btn" id="downloadBtn" onclick="downloadModel()">
+                ⬇️ Download OBJ
+            </button>
+        </div>
+        
+        <div id="viewer"></div>
+        
+        <div class="controls-hint">
+            🖱️ Model rotates automatically • Drag to adjust view
+        </div>
+    </div>
+</div>
+
+<script>
+let scene, camera, renderer, loader, controls;
+let currentJobId = null;
+let pollInterval = null;
+let uploadedImageData = null;
+let currentModelURL = null;
+let currentMesh = null;
+
+// OBJLoader implementation
+THREE.OBJLoader = (function() {
+    function OBJLoader(manager) {
+        this.manager = (manager !== undefined) ? manager : THREE.DefaultLoadingManager;
+    }
+
+    OBJLoader.prototype = {
+        constructor: OBJLoader,
+
+        load: function(url, onLoad, onProgress, onError) {
+            const scope = this;
+            const loader = new THREE.FileLoader(scope.manager);
+            loader.setPath(this.path);
+            loader.load(url, function(text) {
+                onLoad(scope.parse(text));
+            }, onProgress, onError);
+        },
+
+        setPath: function(value) {
+            this.path = value;
+            return this;
+        },
+
+        parse: function(text) {
+            const object = new THREE.Group();
+            const vertices = [];
+            const normals = [];
+            const uvs = [];
+
+            const lines = text.split('\n');
+            
+            let geometry = new THREE.BufferGeometry();
+            let positions = [];
+            let normalsArray = [];
+            let uvsArray = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                if (line.length === 0 || line.charAt(0) === '#') continue;
+
+                const parts = line.split(/\s+/);
+                
+                if (parts[0] === 'v') {
+                    vertices.push(
+                        parseFloat(parts[1]),
+                        parseFloat(parts[2]),
+                        parseFloat(parts[3])
+                    );
+                } else if (parts[0] === 'vn') {
+                    normals.push(
+                        parseFloat(parts[1]),
+                        parseFloat(parts[2]),
+                        parseFloat(parts[3])
+                    );
+                } else if (parts[0] === 'vt') {
+                    uvs.push(
+                        parseFloat(parts[1]),
+                        parseFloat(parts[2])
+                    );
+                } else if (parts[0] === 'f') {
+                    for (let j = 1; j < parts.length; j++) {
+                        const indices = parts[j].split('/');
+                        const vIdx = parseInt(indices[0]) - 1;
+                        
+                        positions.push(
+                            vertices[vIdx * 3],
+                            vertices[vIdx * 3 + 1],
+                            vertices[vIdx * 3 + 2]
+                        );
+
+                        if (indices[1] && uvs.length > 0) {
+                            const vtIdx = parseInt(indices[1]) - 1;
+                            uvsArray.push(uvs[vtIdx * 2], uvs[vtIdx * 2 + 1]);
+                        }
+
+                        if (indices[2] && normals.length > 0) {
+                            const vnIdx = parseInt(indices[2]) - 1;
+                            normalsArray.push(
+                                normals[vnIdx * 3],
+                                normals[vnIdx * 3 + 1],
+                                normals[vnIdx * 3 + 2]
+                            );
+                        }
+                    }
+                }
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            if (normalsArray.length > 0) {
+                geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normalsArray, 3));
+            } else {
+                geometry.computeVertexNormals();
+            }
+            if (uvsArray.length > 0) {
+                geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvsArray, 2));
+            }
+
+            // FIXED: Use neutral gray material instead of blue
+            const material = new THREE.MeshStandardMaterial({ 
+                color: 0xcccccc,  // Light gray to show true geometry
+                metalness: 0.2,
+                roughness: 0.7,
+                flatShading: false,
+                side: THREE.DoubleSide  // Render both sides of faces
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            object.add(mesh);
+
+            return object;
+        }
+    };
+
+    return OBJLoader;
+})();
+
+// Drag and drop functionality
+const uploadZone = document.getElementById('uploadZone');
+
+uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+});
+
+uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        const file = files[0];
+        if (file.type.startsWith('image/')) {
+            processImageFile(file);
+        } else {
+            alert('Please upload an image file (JPG, PNG, WEBP)');
+        }
+    }
+});
+
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        processImageFile(file);
+    }
+}
+
+function processImageFile(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        uploadedImageData = e.target.result;
+        const preview = document.getElementById('imagePreview');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        
+        document.getElementById('generateBtn').disabled = false;
+        document.getElementById('btnText').textContent = '🚀 Generate 3D Model';
+        
+        // Hide viewer if visible
+        document.getElementById('viewerCard').classList.remove('visible');
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeImage() {
+    uploadedImageData = null;
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('imageInput').value = '';
+    document.getElementById('generateBtn').disabled = true;
+    document.getElementById('btnText').textContent = '🎯 Upload an Image to Start';
+}
+
+function updatePhaseIndicator(progress) {
+    const phases = ['phase1', 'phase2', 'phase3', 'phase4'];
+    
+    phases.forEach(phase => {
+        document.getElementById(phase).classList.remove('active', 'complete');
+    });
+    
+    if (progress < 25) {
+        document.getElementById('phase1').classList.add('active');
+    } else if (progress < 70) {
+        document.getElementById('phase1').classList.add('complete');
+        document.getElementById('phase2').classList.add('active');
+    } else if (progress < 90) {
+        document.getElementById('phase1').classList.add('complete');
+        document.getElementById('phase2').classList.add('complete');
+        document.getElementById('phase3').classList.add('active');
+    } else if (progress < 100) {
+        document.getElementById('phase1').classList.add('complete');
+        document.getElementById('phase2').classList.add('complete');
+        document.getElementById('phase3').classList.add('complete');
+        document.getElementById('phase4').classList.add('active');
+    } else {
+        phases.forEach(phase => {
+            document.getElementById(phase).classList.add('complete');
+        });
+    }
+}
+
+async function checkProgress(jobId) {
+    const response = await fetch(`/check_status/${jobId}`);
+    const data = await response.json();
+    
+    if (data.status === "processing") {
+        const progress = data.progress || 0;
+        document.getElementById("progressFill").style.width = progress + "%";
+        document.getElementById("progressFill").textContent = progress + "%";
+        updatePhaseIndicator(progress);
+    } else if (data.status === "complete") {
+        clearInterval(pollInterval);
+        
+        document.getElementById("progressFill").style.width = "100%";
+        document.getElementById("progressFill").textContent = "100%";
+        updatePhaseIndicator(100);
+        
+        setTimeout(() => {
+            document.getElementById("progressSection").style.display = "none";
+            document.getElementById("generateBtn").disabled = false;
+            document.getElementById('btnText').textContent = '🚀 Generate Another Model';
+            
+            currentModelURL = data.model_url;
+            loadModel(data.model_url);
+        }, 500);
+        
+    } else if (data.status === "error") {
+        clearInterval(pollInterval);
+        alert("❌ Error: " + data.message);
+        document.getElementById("progressSection").style.display = "none";
+        document.getElementById("generateBtn").disabled = false;
+        document.getElementById('btnText').textContent = '🚀 Generate 3D Model';
+    }
+}
+
+async function generate3D() {
+    if (!uploadedImageData) {
+        alert("Please upload an image first.");
+        return;
+    }
+
+    document.getElementById("progressSection").style.display = "block";
+    document.getElementById("statusText").textContent = "⏳ Processing your image...";
+    document.getElementById("progressFill").style.width = "0%";
+    document.getElementById("progressFill").textContent = "0%";
+    document.getElementById("generateBtn").disabled = true;
+    document.getElementById('btnText').textContent = '⏳ Generating...';
+    
+    // Reset phases
+    updatePhaseIndicator(0);
+
+    const payload = {
+        image: uploadedImageData
+    };
+
+    try {
+        const response = await fetch("/generate3d", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        console.log(data);
+
+        if (data.status !== "started") {
+            alert("Failed to start generation: " + (data.message || "Unknown error"));
+            document.getElementById("progressSection").style.display = "none";
+            document.getElementById("generateBtn").disabled = false;
+            document.getElementById('btnText').textContent = '🚀 Generate 3D Model';
+            return;
+        }
+
+        currentJobId = data.job_id;
+        pollInterval = setInterval(() => checkProgress(currentJobId), 1000);
+        
+    } catch (error) {
+        console.error(error);
+        alert("❌ Network error: " + error.message);
+        document.getElementById("progressSection").style.display = "none";
+        document.getElementById("generateBtn").disabled = false;
+        document.getElementById('btnText').textContent = '🚀 Generate 3D Model';
+    }
+}
+
+function initViewer() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a0a);
+
+    camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+    camera.position.set(0, 0, 3);
+
+    const viewerElement = document.getElementById("viewer");
+    const width = viewerElement.clientWidth;
+    const height = viewerElement.clientHeight;
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    viewerElement.innerHTML = "";
+    viewerElement.appendChild(renderer.domElement);
+
+    // Enhanced lighting setup for better model visibility
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+
+    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight1.position.set(5, 5, 5);
+    scene.add(directionalLight1);
+
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight2.position.set(-5, -5, -5);
+    scene.add(directionalLight2);
+
+    const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.3);
+    directionalLight3.position.set(0, 5, 0);
+    scene.add(directionalLight3);
+
+    loader = new THREE.OBJLoader();
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        const width = viewerElement.clientWidth;
+        const height = viewerElement.clientHeight;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+    });
+}
+
+function loadModel(modelURL) {
+    initViewer();
+    document.getElementById('viewerCard').classList.add('visible');
+
+    loader.load(modelURL, function (obj) {
+        // Remove previous mesh if exists
+        if (currentMesh) {
+            scene.remove(currentMesh);
+        }
+        
+        currentMesh = obj;
+        
+        // Center and scale model
+        const box = new THREE.Box3().setFromObject(obj);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 2 / maxDim;
+        
+        obj.scale.multiplyScalar(scale);
+        obj.position.sub(center.multiplyScalar(scale));
+        
+        scene.add(obj);
+        
+        // Animation loop
+        let rotationSpeed = 0.005;
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        
+        renderer.domElement.addEventListener('mousedown', () => {
+            isDragging = true;
+            rotationSpeed = 0;
+        });
+        
+        renderer.domElement.addEventListener('mouseup', () => {
+            isDragging = false;
+            setTimeout(() => {
+                if (!isDragging) rotationSpeed = 0.005;
+            }, 100);
+        });
+        
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                
+                obj.rotation.y += deltaX * 0.01;
+                obj.rotation.x += deltaY * 0.01;
+            }
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (!isDragging) {
+                obj.rotation.y += rotationSpeed;
+            }
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+    }, undefined, function (error) {
+        console.error(error);
+        alert("❌ Failed to load 3D model.");
+    });
+}
+
+function downloadModel() {
+    if (currentModelURL) {
+        const link = document.createElement('a');
+        link.href = currentModelURL;
+        link.download = 'triposr_model.obj';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+</script>
+
+</body>
+</html>
